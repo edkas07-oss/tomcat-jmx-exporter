@@ -1,0 +1,12 @@
+.artifacts/
+.env
+
+# Runtime secrets must never be committed.
+*.jks
+*.p12
+*.pfx
+*.pem
+*.crt
+*.cer
+*.key
+*-password
