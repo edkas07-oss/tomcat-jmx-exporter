@@ -1,16 +1,15 @@
-# Base image contract
+# Kontrak image dasar
 BASE_IMAGE=localhost/tomcat:9.0
 
-# Derived image identity
+# Identitas image turunan
 IMAGE_NAME=localhost/tomcat-jmx-exporter
 
-# Pinned upstream artifact
+# Artefak upstream yang dipin
 JMX_EXPORTER_VERSION=1.6.0
 JMX_EXPORTER_SHA256=a95983fd96e865d2bcdf911cc500e7c82808c27ab9fd226bf96732b6c3d8c46e
 
-# Local runtime defaults
+# Nilai bawaan runtime lokal
 NETWORK=devops-lab
 INSTANCE_NAME=tomcat-jmx-exporter
 HTTP_HOST_PORT=8080
 METRICS_HOST_PORT=9404
-

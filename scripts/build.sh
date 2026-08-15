@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################################
-# Downloads and verifies the pinned Java Agent, then builds the derived image.
+# Mengunduh dan memverifikasi Java Agent yang dipin, lalu membangun image turunan.
 ###############################################################################
 set -euo pipefail
 
@@ -21,7 +21,7 @@ verify_artifact() {
 mkdir -p "${ARTIFACT_DIR}"
 
 if [[ ! -f "${ARTIFACT_FILE}" ]] || ! verify_artifact >/dev/null 2>&1; then
-    echo "Downloading JMX Exporter ${JMX_EXPORTER_VERSION}..."
+    echo "Mengunduh JMX Exporter ${JMX_EXPORTER_VERSION}..."
     curl --proto '=https' --tlsv1.2 --location --fail --show-error --silent \
         "${DOWNLOAD_URL}" \
         --output "${ARTIFACT_FILE}.part"
@@ -30,7 +30,7 @@ fi
 
 verify_artifact
 
-echo "Building ${IMAGE_NAME}:${PROJECT_VERSION} from ${BASE_IMAGE}..."
+echo "Membangun ${IMAGE_NAME}:${PROJECT_VERSION} dari ${BASE_IMAGE}..."
 podman build \
     --pull=never \
     --build-arg BASE_IMAGE="${BASE_IMAGE}" \
@@ -42,4 +42,4 @@ podman build \
     --tag "${IMAGE_NAME}:latest" \
     "${PROJECT_ROOT}"
 
-echo "Build completed: ${IMAGE_NAME}:${PROJECT_VERSION}"
+echo "Build selesai: ${IMAGE_NAME}:${PROJECT_VERSION}"

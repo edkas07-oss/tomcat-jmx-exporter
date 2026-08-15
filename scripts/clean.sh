@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################################
-# Removes one local runtime container. Images are removed only with --image.
+# Menghapus satu container runtime lokal. Image hanya dihapus dengan --image.
 ###############################################################################
 set -euo pipefail
 
@@ -19,5 +19,4 @@ if [[ "${2:-}" == "--image" ]]; then
     podman rmi "${IMAGE_NAME}:${PROJECT_VERSION}" 2>/dev/null || true
 fi
 
-echo "Cleanup completed for container: ${INSTANCE}"
-
+echo "Pembersihan selesai untuk container: ${INSTANCE}"

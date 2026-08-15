@@ -3,8 +3,8 @@
 # Project : Tomcat JMX Exporter
 # File    : Containerfile
 #
-# Builds a derived Tomcat image containing the Prometheus JMX Exporter Java
-# Agent. Runtime rules and TLS material are supplied by the consuming project.
+# Membangun image turunan Tomcat yang memuat Prometheus JMX Exporter Java Agent.
+# Aturan metrics dan material TLS disediakan oleh project yang menggunakan image.
 #
 ###############################################################################
 
@@ -25,7 +25,7 @@ ENV PROJECT=${IMAGE_PROJECT} \
     JMX_EXPORTER_KEYSTORE_PASSWORD_FILE=/run/secrets/tomcat-jmx-exporter/keystore-password
 
 LABEL org.opencontainers.image.title="${IMAGE_PROJECT}" \
-      org.opencontainers.image.description="Apache Tomcat with embedded Prometheus JMX Exporter instrumentation" \
+      org.opencontainers.image.description="Apache Tomcat dengan instrumentasi Prometheus JMX Exporter tertanam" \
       org.opencontainers.image.version="${IMAGE_VERSION}" \
       org.opencontainers.image.authors="Edkas07" \
       org.opencontainers.image.source="http://localhost:3000/gitadm/tomcat-jmx-exporter.git" \

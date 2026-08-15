@@ -1,14 +1,15 @@
 # Tomcat JMX Exporter
 
-Derived container image untuk menambahkan **Prometheus JMX Exporter Java Agent**
+Image container turunan untuk menambahkan **Prometheus JMX Exporter Java Agent**
 ke dalam JVM Apache Tomcat. Image ini menggunakan `localhost/tomcat:9.0`
-sebagai base image dan tidak mengaktifkan remote JMX.
+sebagai image dasar dan tidak mengaktifkan JMX jarak jauh.
 
-Endpoint metrics hanya disajikan melalui HTTPS dengan server-side TLS. Client
-certificate tidak diperlukan. Konfigurasi exporter, TLS keystore, dan password
-keystore selalu diberikan saat runtime sehingga tidak tersimpan di image.
+Endpoint metrics hanya disajikan melalui HTTPS dengan TLS sisi server.
+Sertifikat klien tidak diperlukan. Konfigurasi exporter, TLS keystore, dan
+password keystore selalu diberikan saat runtime sehingga tidak tersimpan di
+image.
 
-## Repository Boundary
+## Batas Tanggung Jawab Repository
 
 Repository ini memiliki tanggung jawab terbatas:
 
@@ -16,29 +17,30 @@ Repository ini memiliki tanggung jawab terbatas:
 - mengunduh dan memverifikasi JMX Exporter Java Agent versi yang dipin;
 - memasang Java Agent ke `CATALINA_OPTS`;
 - memvalidasi kontrak file konfigurasi dan TLS pada startup; dan
-- menyediakan build serta smoke test lokal.
+- menyediakan proses build serta smoke test lokal.
 
-Metric rules untuk environment, Prometheus, Telegraf, dashboard, alert, dan
-integrasi event merupakan tanggung jawab repository `tomcat-monitoring`.
+Aturan metrics untuk setiap environment, Prometheus, Telegraf, dashboard,
+alert, dan integrasi event merupakan tanggung jawab repository
+`tomcat-monitoring`.
 
-## Runtime Contract
+## Kontrak Runtime
 
-| Item | Contract |
+| Komponen | Kontrak |
 |---|---|
-| Base image | `localhost/tomcat:9.0` |
+| Image dasar | `localhost/tomcat:9.0` |
 | Image | `localhost/tomcat-jmx-exporter:1.0.0` |
 | JMX Exporter | Java Agent `1.6.0`, checksum SHA-256 dipin di `CONFIG` |
-| Metrics endpoint | `https://<container>:9404/metrics` |
-| Exporter config | `/etc/tomcat-jmx-exporter/config.yml` |
+| Endpoint metrics | `https://<container>:9404/metrics` |
+| Konfigurasi exporter | `/etc/tomcat-jmx-exporter/config.yml` |
 | TLS keystore | `/run/secrets/tomcat-jmx-exporter/keystore.p12` |
-| Keystore password | `/run/secrets/tomcat-jmx-exporter/keystore-password` |
-| TLS mode | Server-side TLS, tanpa mTLS |
+| Password keystore | `/run/secrets/tomcat-jmx-exporter/keystore-password` |
+| Mode TLS | TLS sisi server, tanpa mTLS |
 
 File konfigurasi harus menggunakan `${JMX_EXPORTER_KEYSTORE_PASSWORD}` pada
 `httpServer.ssl.keyStore.password`. Entrypoint membaca nilai tersebut dari file
 password dan tidak mencetaknya ke log.
 
-## Repository Structure
+## Struktur Repository
 
 ```text
 tomcat-jmx-exporter/
@@ -57,28 +59,28 @@ tomcat-jmx-exporter/
     └── test.sh
 ```
 
-## Build
+## Membangun Image
 
-Base image harus sudah tersedia secara lokal.
+Image dasar harus sudah tersedia secara lokal.
 
 ```bash
 ./scripts/build.sh
 ```
 
-Build script mengunduh artifact resmi JMX Exporter ke `.artifacts/`,
-memverifikasi SHA-256, lalu menjalankan build dengan `--pull=never`.
+Build script mengunduh artefak resmi JMX Exporter ke `.artifacts/`,
+memverifikasi SHA-256, lalu membangun image dengan `--pull=never`.
 
-## Smoke Test
+## Pengujian Dasar (Smoke Test)
 
 ```bash
 ./scripts/test.sh
 ```
 
 Test membuat certificate dan PKCS12 keystore sementara, menjalankan container,
-lalu memastikan `/metrics` dapat diakses melalui HTTPS dan metric JVM tersedia.
-Seluruh material TLS test dihapus setelah test selesai.
+lalu memastikan `/metrics` dapat diakses melalui HTTPS dan metrics JVM tersedia.
+Seluruh material TLS pengujian dihapus setelah test selesai.
 
-## Local Run
+## Menjalankan Container Lokal
 
 Siapkan config, PKCS12 keystore, dan file password, kemudian jalankan:
 
@@ -93,10 +95,9 @@ Siapkan config, PKCS12 keystore, dan file password, kemudian jalankan:
 Contoh file konfigurasi menunjukkan bentuk interface minimum. Gunakan metric
 rules dari repository `tomcat-monitoring` untuk implementasi sebenarnya.
 
-## Upstream Reference
+## Referensi Upstream
 
 - <https://prometheus.github.io/jmx_exporter/>
 - <https://prometheus.github.io/jmx_exporter/deployment/modes/>
 - <https://prometheus.github.io/jmx_exporter/configuration/ssl/>
 - <https://github.com/prometheus/jmx_exporter/releases/tag/1.6.0>
-

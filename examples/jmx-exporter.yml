@@ -1,5 +1,5 @@
-# Interface example only. Production metric rules are owned by the consuming
-# monitoring repository and should be mounted at this same runtime path.
+# Contoh ini hanya menunjukkan bentuk interface. Aturan metrics untuk production
+# dimiliki repository monitoring dan dipasang pada path runtime yang sama.
 ---
 httpServer:
   ssl:
@@ -20,4 +20,3 @@ rules:
     labels:
       version: "$1"
     type: GAUGE
-

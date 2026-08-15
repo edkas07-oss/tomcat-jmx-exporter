@@ -1,7 +1,8 @@
 #!/bin/bash
 ###############################################################################
-# Smoke test: starts Tomcat with an ephemeral certificate and verifies that the
-# JMX Exporter serves metrics over HTTPS. No test secret is retained.
+# Smoke test: menjalankan Tomcat menggunakan certificate sementara dan
+# memverifikasi bahwa JMX Exporter menyajikan metrics melalui HTTPS. Tidak ada
+# secret pengujian yang dipertahankan setelah test selesai.
 ###############################################################################
 set -euo pipefail
 
@@ -63,7 +64,7 @@ for attempt in $(seq 1 30); do
 
     if [[ "${attempt}" -eq 30 ]]; then
         podman logs "${CONTAINER_NAME}" >&2
-        echo "Metrics endpoint did not become ready." >&2
+        echo "Endpoint metrics tidak siap dalam batas waktu pengujian." >&2
         exit 1
     fi
     sleep 1
@@ -72,4 +73,4 @@ done
 grep -q '^jmx_scrape_duration_seconds ' "${TEST_DIR}/metrics.txt"
 grep -q '^jvm_memory_heap_used_bytes ' "${TEST_DIR}/metrics.txt"
 
-echo "Smoke test passed: HTTPS /metrics and local JVM collection are operational."
+echo "Smoke test lulus: HTTPS /metrics dan pengumpulan metrics JVM lokal berfungsi."

@@ -4,8 +4,8 @@
 # Project : Tomcat JMX Exporter
 # File    : entrypoint.sh
 #
-# Validates the runtime contract, injects JMX Exporter into the Tomcat JVM,
-# then delegates startup to the entrypoint supplied by the base Tomcat image.
+# Memvalidasi kontrak runtime, memasang JMX Exporter ke dalam JVM Tomcat, lalu
+# meneruskan proses startup ke entrypoint dari image dasar Tomcat.
 #
 ###############################################################################
 set -euo pipefail
@@ -52,10 +52,10 @@ configure_java_agent() {
 
     echo "JMX Exporter"
     echo "------------"
-    echo "Mode        : Java Agent (local JVM)"
+    echo "Mode        : Java Agent (JVM lokal)"
     echo "Metrics     : HTTPS 0.0.0.0:${EXPORTER_PORT}/metrics"
-    echo "TLS         : Server-side TLS"
-    echo "Config      : ${CONFIG_FILE}"
+    echo "TLS         : TLS sisi server"
+    echo "Konfigurasi : ${CONFIG_FILE}"
     echo
 }
 
@@ -65,4 +65,3 @@ main() {
 }
 
 main "$@"
-

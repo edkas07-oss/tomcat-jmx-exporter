@@ -1,8 +1,9 @@
 #!/bin/bash
 ###############################################################################
-# Runs one local instance with externally supplied config and TLS material.
+# Menjalankan satu instance lokal menggunakan konfigurasi dan material TLS
+# yang disediakan dari luar container.
 #
-# Usage:
+# Penggunaan:
 #   ./scripts/run.sh CONFIG KEYSTORE PASSWORD_FILE [INSTANCE] [HTTP] [METRICS]
 ###############################################################################
 set -euo pipefail
@@ -15,7 +16,7 @@ source "${PROJECT_ROOT}/CONFIG"
 PROJECT_VERSION="$(<"${PROJECT_ROOT}/VERSION")"
 
 usage() {
-    echo "Usage: $0 CONFIG KEYSTORE PASSWORD_FILE [INSTANCE] [HTTP_PORT] [METRICS_PORT]" >&2
+    echo "Penggunaan: $0 CONFIG KEYSTORE PASSWORD_FILE [INSTANCE] [HTTP_PORT] [METRICS_PORT]" >&2
     exit 2
 }
 
@@ -23,7 +24,7 @@ usage() {
 
 for supplied_file in "$1" "$2" "$3"; do
     [[ -f "${supplied_file}" && -r "${supplied_file}" ]] \
-        || { echo "Required file is not readable: ${supplied_file}" >&2; exit 1; }
+        || { echo "File wajib tidak dapat dibaca: ${supplied_file}" >&2; exit 1; }
 done
 
 CONFIG_FILE="$(readlink -f "$1")"
@@ -34,8 +35,8 @@ HTTP_PORT="${5:-${HTTP_HOST_PORT}}"
 METRICS_PORT="${6:-${METRICS_HOST_PORT}}"
 
 if podman container exists "${INSTANCE}"; then
-    echo "Container already exists: ${INSTANCE}" >&2
-    echo "Remove it explicitly before creating a replacement." >&2
+    echo "Container sudah tersedia: ${INSTANCE}" >&2
+    echo "Hapus container tersebut secara eksplisit sebelum membuat penggantinya." >&2
     exit 1
 fi
 
@@ -52,5 +53,5 @@ podman run --detach \
     "${IMAGE_NAME}:${PROJECT_VERSION}"
 
 echo "Container : ${INSTANCE}"
-echo "Tomcat   : http://localhost:${HTTP_PORT}"
-echo "Metrics  : https://localhost:${METRICS_PORT}/metrics"
+echo "Tomcat    : http://localhost:${HTTP_PORT}"
+echo "Metrics   : https://localhost:${METRICS_PORT}/metrics"
