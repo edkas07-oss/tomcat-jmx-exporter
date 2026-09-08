@@ -35,6 +35,7 @@ alert, dan integrasi event merupakan tanggung jawab repository
 | TLS keystore | `/run/secrets/tomcat-jmx-exporter/keystore.p12` |
 | Password keystore | `/run/secrets/tomcat-jmx-exporter/keystore-password` |
 | Mode TLS | TLS sisi server, tanpa mTLS |
+| Auto-Healing Policy | `--restart=on-failure:5` (TM-ADR-0021) disupervisi via `systemd --user podman-restart.service` |
 
 File konfigurasi harus menggunakan `${JMX_EXPORTER_KEYSTORE_PASSWORD}` pada
 `httpServer.ssl.keyStore.password`. Entrypoint membaca nilai tersebut dari file
