@@ -45,6 +45,7 @@ podman network exists "${NETWORK}" || podman network create "${NETWORK}" >/dev/n
 podman run --detach \
     --name "${INSTANCE}" \
     --network "${NETWORK}" \
+    --restart=on-failure:5 \
     --publish "${HTTP_PORT}:8080" \
     --publish "${METRICS_PORT}:9404" \
     --volume "${CONFIG_FILE}:/etc/tomcat-jmx-exporter/config.yml:ro" \
