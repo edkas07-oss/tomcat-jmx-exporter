@@ -42,7 +42,8 @@ fi
 
 podman network exists "${NETWORK}" || podman network create "${NETWORK}" >/dev/null
 
-mkdir -p /tmp/tomcat-logs && chmod 0777 /tmp/tomcat-logs 2>/dev/null || true
+TOMCAT_LOG_DIR="${TOMCAT_LOG_DIR:-${HOME}/.local/share/tomcat-monitoring/logs}"
+mkdir -p "${TOMCAT_LOG_DIR}" && chmod 0775 "${TOMCAT_LOG_DIR}" 2>/dev/null || true
 
 podman run --detach \
     --name "${INSTANCE}" \
@@ -53,7 +54,7 @@ podman run --detach \
     --volume "${CONFIG_FILE}:/etc/tomcat-jmx-exporter/config.yml:ro" \
     --volume "${KEYSTORE_FILE}:/run/secrets/tomcat-jmx-exporter/keystore.p12:ro" \
     --volume "${PASSWORD_FILE}:/run/secrets/tomcat-jmx-exporter/keystore-password:ro" \
-    --volume "/tmp/tomcat-logs:/usr/local/tomcat/logs:z" \
+    --volume "${TOMCAT_LOG_DIR}:/usr/local/tomcat/logs:z" \
     "${IMAGE_NAME}:${PROJECT_VERSION}"
 
 echo "Container : ${INSTANCE}"
