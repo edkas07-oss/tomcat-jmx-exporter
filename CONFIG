@@ -13,3 +13,4 @@ NETWORK=devops-lab
 INSTANCE_NAME=tomcat-jmx-exporter
 HTTP_HOST_PORT=8080
 METRICS_HOST_PORT=9404
+LOG_VOLUME=tomcat_logs
