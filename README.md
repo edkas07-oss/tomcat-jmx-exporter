@@ -36,10 +36,39 @@ alert, dan integrasi event merupakan tanggung jawab repository
 | Password keystore | `/run/secrets/tomcat-jmx-exporter/keystore-password` |
 | Mode TLS | TLS sisi server, tanpa mTLS |
 | Auto-Healing Policy | `--restart=on-failure:5` (TM-ADR-0021) disupervisi via `systemd --user podman-restart.service` |
+| Volume Log Persisten | `tomcat_logs` (Named Volume) -> `/usr/local/tomcat/logs:z` (dideklarasikan di `CONFIG`) |
 
 File konfigurasi harus menggunakan `${JMX_EXPORTER_KEYSTORE_PASSWORD}` pada
 `httpServer.ssl.keyStore.password`. Entrypoint membaca nilai tersebut dari file
 password dan tidak mencetaknya ke log.
+
+## Konfigurasi Runtime & Persistensi Log
+
+Repository ini menggunakan berkas `CONFIG` sebagai deklarasi konfigurasi kanonikal non-secret:
+
+```bash
+# Kontrak image dasar
+BASE_IMAGE=localhost/tomcat:9.0
+
+# Identitas image turunan
+IMAGE_NAME=localhost/tomcat-jmx-exporter
+
+# Artefak upstream yang dipin
+JMX_EXPORTER_VERSION=1.6.0
+JMX_EXPORTER_SHA256=a95983fd96e865d2bcdf911cc500e7c82808c27ab9fd226bf96732b6c3d8c46e
+
+# Nilai bawaan runtime lokal
+NETWORK=devops-lab
+INSTANCE_NAME=tomcat-jmx-exporter
+HTTP_HOST_PORT=8080
+METRICS_HOST_PORT=9404
+LOG_VOLUME=tomcat_logs
+```
+
+### Kebijakan Persistensi Log (Zero `/tmp`)
+- **Podman Named Volume:** Log Tomcat (`catalina.out`, `localhost.*.log`, `catalina.*.log`, `localhost_access_log.*.txt`) disimpan secara persisten di Podman Named Volume `tomcat_logs` yang dimount ke `/usr/local/tomcat/logs:z`.
+- **Ketahanan Restart:** Penyimpanan tidak menggunakan direktori volatil `/tmp` maupun bind-mount path host yang tidak terkelola, memastikan log audit dan korelasi investigasi tetap utuh dan tidak terhapus ketika container atau server host di-restart.
+- **Configurable:** Nama volume dideklarasikan pada variabel `LOG_VOLUME` di `CONFIG`. Operator dapat melakukan override saat runtime melalui environment variable (misalnya: `LOG_VOLUME=custom_tomcat_logs ./scripts/run.sh ...`).
 
 ## Struktur Repository
 
