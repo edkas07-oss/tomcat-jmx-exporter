@@ -1,63 +1,76 @@
-# Tomcat JMX Exporter
+# Tomcat JMX Exporter — Hardened Prometheus Telemetry Image
 
-Image container turunan untuk menambahkan **Prometheus JMX Exporter Java Agent**
-ke dalam JVM Apache Tomcat. Image ini menggunakan `localhost/tomcat:9.0`
-sebagai image dasar dan tidak mengaktifkan JMX jarak jauh.
+[![Base Image](https://img.shields.io/badge/base-tomcat%3A9.0-blue.svg)](Containerfile)
+[![JMX Exporter](https://img.shields.io/badge/jmx__exporter-1.6.0-orange.svg)](https://github.com/prometheus/jmx_exporter)
+[![License](https://img.shields.io/badge/license-Proprietary_&_Confidential-red.svg)](LICENSE)
 
-Endpoint metrics hanya disajikan melalui HTTPS dengan TLS sisi server.
-Sertifikat klien tidak diperlukan. Konfigurasi exporter, TLS keystore, dan
-password keystore selalu diberikan saat runtime sehingga tidak tersimpan di
-image.
+A derived OCI container image integrating the **Prometheus JMX Exporter Java Agent** directly into the Apache Tomcat JVM. Built on top of `localhost/tomcat:9.0`, this image exposes JVM and Tomcat internal runtime metrics exclusively over HTTPS TLS without enabling remote JMX ports.
 
-## Batas Tanggung Jawab Repository
+All exporter configurations, PKCS#12 TLS keystores, and credentials are provided dynamically at runtime via secrets mounts, ensuring zero credentials or certificates reside inside the container image.
 
-Repository ini memiliki tanggung jawab terbatas:
+---
 
-- membangun image turunan Tomcat;
-- mengunduh dan memverifikasi JMX Exporter Java Agent versi yang dipin;
-- memasang Java Agent ke `CATALINA_OPTS`;
-- memvalidasi kontrak file konfigurasi dan TLS pada startup; dan
-- menyediakan proses build serta smoke test lokal.
+## 🏛️ Architecture & Runtime Contract
 
-Aturan metrics untuk setiap environment, Prometheus, Telegraf, dashboard,
-alert, dan integrasi event merupakan tanggung jawab repository
-`tomcat-monitoring`.
+```mermaid
+flowchart LR
+    subgraph SECRETS["Runtime Secrets & Configuration"]
+        CFG["jmx-exporter.yml<br/>(/etc/tomcat-jmx-exporter/)"]
+        KS["keystore.p12<br/>(/run/secrets/.../keystore.p12)"]
+        PW["keystore-password<br/>(/run/secrets/.../keystore-password)"]
+    end
 
-## Kontrak Runtime
+    subgraph CONTAINER["tomcat-jmx-exporter Container"]
+        JVM["Apache Tomcat 9.0 JVM"]
+        AGENT["JMX Exporter Java Agent (1.6.0)"]
+        LOGS["/usr/local/tomcat/logs:z"]
+        JVM --- AGENT
+    end
 
-| Komponen | Kontrak |
-|---|---|
-| Image dasar | `localhost/tomcat:9.0` |
-| Image | `localhost/tomcat-jmx-exporter:1.0.0` |
-| JMX Exporter | Java Agent `1.6.0`, checksum SHA-256 dipin di `CONFIG` |
-| Endpoint metrics | `https://<container>:9404/metrics` |
-| Konfigurasi exporter | `/etc/tomcat-jmx-exporter/config.yml` |
-| TLS keystore | `/run/secrets/tomcat-jmx-exporter/keystore.p12` |
-| Password keystore | `/run/secrets/tomcat-jmx-exporter/keystore-password` |
-| Mode TLS | TLS sisi server, tanpa mTLS |
-| Auto-Healing Policy | `--restart=on-failure:5` (TM-ADR-0021) disupervisi via `systemd --user podman-restart.service` |
-| Volume Log Persisten | `tomcat_logs` (Named Volume) -> `/usr/local/tomcat/logs:z` (dideklarasikan di `CONFIG`) |
+    subgraph STORAGE["Persistent Storage"]
+        VOL[("Named Volume<br/>tomcat_logs")]
+    end
 
-File konfigurasi harus menggunakan `${JMX_EXPORTER_KEYSTORE_PASSWORD}` pada
-`httpServer.ssl.keyStore.password`. Entrypoint membaca nilai tersebut dari file
-password dan tidak mencetaknya ke log.
+    CFG --> AGENT
+    KS --> AGENT
+    PW --> AGENT
+    LOGS --> VOL
+    AGENT ==>|HTTPS /metrics (Port 9404)| PROM["Prometheus Scraper"]
+    JVM ==>|HTTP Web (Port 8080)| CLIENTS["Application Clients"]
+```
 
-## Konfigurasi Runtime & Persistensi Log
+---
 
-Repository ini menggunakan berkas `CONFIG` sebagai deklarasi konfigurasi kanonikal non-secret:
+## 📋 Runtime Contracts & Specifications
+
+| Component | Contract / Specification |
+| :--- | :--- |
+| **Base Image** | `localhost/tomcat:9.0` |
+| **Output Image** | `localhost/tomcat-jmx-exporter:1.0.0` |
+| **JMX Exporter Agent** | Java Agent version `1.6.0` (SHA-256 pinned in `CONFIG`) |
+| **Metrics Endpoint** | `https://<container>:9404/metrics` (Server-side TLS) |
+| **Exporter Config Path** | `/etc/tomcat-jmx-exporter/config.yml` |
+| **TLS Keystore Path** | `/run/secrets/tomcat-jmx-exporter/keystore.p12` |
+| **Keystore Password Path**| `/run/secrets/tomcat-jmx-exporter/keystore-password` |
+| **Auto-Healing Policy** | `--restart=on-failure:5` supervised via `systemd --user podman-restart.service` ([TM-ADR-0021](file:///home/eddywiyatno/git/devops-handbook/docs/adr/tomcat-monitoring/adr-records/TM-ADR-0021.md)) |
+| **Persistent Log Volume** | `tomcat_logs` (Named Volume) mounted to `/usr/local/tomcat/logs:z` |
+
+---
+
+## ⚙️ Baseline Configuration (`CONFIG`)
 
 ```bash
-# Kontrak image dasar
+# Base image contract
 BASE_IMAGE=localhost/tomcat:9.0
 
-# Identitas image turunan
+# Output image identity
 IMAGE_NAME=localhost/tomcat-jmx-exporter
 
-# Artefak upstream yang dipin
+# Pinned upstream artifact
 JMX_EXPORTER_VERSION=1.6.0
 JMX_EXPORTER_SHA256=a95983fd96e865d2bcdf911cc500e7c82808c27ab9fd226bf96732b6c3d8c46e
 
-# Nilai bawaan runtime lokal
+# Local runtime defaults
 NETWORK=devops-lab
 INSTANCE_NAME=tomcat-jmx-exporter
 HTTP_HOST_PORT=8080
@@ -65,69 +78,58 @@ METRICS_HOST_PORT=9404
 LOG_VOLUME=tomcat_logs
 ```
 
-### Kebijakan Persistensi Log (Zero `/tmp`)
-- **Podman Named Volume:** Log Tomcat (`catalina.out`, `localhost.*.log`, `catalina.*.log`, `localhost_access_log.*.txt`) disimpan secara persisten di Podman Named Volume `tomcat_logs` yang dimount ke `/usr/local/tomcat/logs:z`.
-- **Ketahanan Restart:** Penyimpanan tidak menggunakan direktori volatil `/tmp` maupun bind-mount path host yang tidak terkelola, memastikan log audit dan korelasi investigasi tetap utuh dan tidak terhapus ketika container atau server host di-restart.
-- **Configurable:** Nama volume dideklarasikan pada variabel `LOG_VOLUME` di `CONFIG`. Operator dapat melakukan override saat runtime melalui environment variable (misalnya: `LOG_VOLUME=custom_tomcat_logs ./scripts/run.sh ...`).
+### Persistent Logging Policy (Zero `/tmp`)
+- **Named Volume Persistence:** Tomcat logs (`catalina.out`, `localhost.*.log`, `access_log`) reside on the Podman Named Volume `tomcat_logs` mounted to `/usr/local/tomcat/logs:z`.
+- **Restart Resilience:** Data remains intact across container lifecycles, enabling the **Tomcat Diagnostic Service** to perform retrospective log evidence analysis upon failure.
 
-## Struktur Repository
+---
 
-```text
-tomcat-jmx-exporter/
-├── CONFIG
-├── Containerfile
-├── PROJECT
-├── README.md
-├── VERSION
-├── entrypoint.sh
-├── examples/
-│   └── jmx-exporter.yml
-└── scripts/
-    ├── build.sh
-    ├── clean.sh
-    ├── run.sh
-    └── test.sh
-```
-
-## Membangun Image
-
-Image dasar harus sudah tersedia secara lokal.
+## 🛠️ Build, Test, & Execution Commands
 
 ```bash
+# Build the container image locally
 ./scripts/build.sh
-```
 
-Build script mengunduh artefak resmi JMX Exporter ke `.artifacts/`,
-memverifikasi SHA-256, lalu membangun image dengan `--pull=never`.
-
-## Pengujian Dasar (Smoke Test)
-
-```bash
+# Run automated smoke test suite (creates ephemeral certs, verifies HTTPS /metrics)
 ./scripts/test.sh
-```
 
-Test membuat certificate dan PKCS12 keystore sementara, menjalankan container,
-lalu memastikan `/metrics` dapat diakses melalui HTTPS dan metrics JVM tersedia.
-Seluruh material TLS pengujian dihapus setelah test selesai.
-
-## Menjalankan Container Lokal
-
-Siapkan config, PKCS12 keystore, dan file password, kemudian jalankan:
-
-```bash
+# Run local standalone container
 ./scripts/run.sh \
   /path/to/jmx-exporter.yml \
   /path/to/keystore.p12 \
   /path/to/keystore-password \
   tomcat-app 8080 9404
+
+# Stop and remove container
+./scripts/clean.sh tomcat-app
 ```
 
-Contoh file konfigurasi menunjukkan bentuk interface minimum. Gunakan metric
-rules dari repository `tomcat-monitoring` untuk implementasi sebenarnya.
+---
 
-## Referensi Upstream
+## 📂 Repository Structure
 
-- <https://prometheus.github.io/jmx_exporter/>
-- <https://prometheus.github.io/jmx_exporter/deployment/modes/>
-- <https://prometheus.github.io/jmx_exporter/configuration/ssl/>
-- <https://github.com/prometheus/jmx_exporter/releases/tag/1.6.0>
+```text
+tomcat-jmx-exporter/
+├── AGENTS.md                  Agent governance principles
+├── CONFIG                     Metadata & pinned checksum SSOT
+├── Containerfile              Multi-stage OCI build definition
+├── PROJECT                    Script-readable project identifier
+├── README.md                  Technical architecture documentation
+├── VERSION                    Release version
+├── entrypoint.sh              Runtime credential loading & JVM bootstrap
+├── examples/
+│   └── jmx-exporter.yml       Reference configuration template
+└── scripts/
+    ├── build.sh               Build script with SHA-256 verification
+    ├── clean.sh               Container cleanup utility
+    ├── run.sh                 Container runner
+    └── test.sh                Automated smoke test suite
+```
+
+---
+
+## 👤 Author & Maintainer
+
+- **Lead Engineer & Architect:** Eddy Wiyatno (<edkas07@gmail.com>)
+- **Role:** Senior DevOps & Reliability Engineer
+- **Project:** Tomcat Monitoring & Diagnostics Platform
