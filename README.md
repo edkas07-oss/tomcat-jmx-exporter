@@ -1,12 +1,24 @@
-# Tomcat JMX Exporter — Hardened Prometheus Telemetry Image
+# 🚀 Tomcat JMX Exporter — Hardened Prometheus Telemetry Image
 
-[![Base Image](https://img.shields.io/badge/base-tomcat%3A9.0-blue.svg)](Containerfile)
-[![JMX Exporter](https://img.shields.io/badge/jmx__exporter-1.6.0-orange.svg)](https://github.com/prometheus/jmx_exporter)
-[![License](https://img.shields.io/badge/license-Proprietary_&_Confidential-red.svg)](LICENSE)
+[![Base Image](https://img.shields.io/badge/Base-tomcat%3A9.0-blue.svg)](Containerfile)
+[![JMX Exporter](https://img.shields.io/badge/JMX__Exporter-1.6.0-orange.svg)](https://github.com/prometheus/jmx_exporter)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Security](https://img.shields.io/badge/Security-HTTPS_TLS_9404-brightgreen.svg)](CONFIG)
 
 A derived OCI container image integrating the **Prometheus JMX Exporter Java Agent** directly into the Apache Tomcat JVM. Built on top of `localhost/tomcat:9.0`, this image exposes JVM and Tomcat internal runtime metrics exclusively over HTTPS TLS without enabling remote JMX ports.
 
 All exporter configurations, PKCS#12 TLS keystores, and credentials are provided dynamically at runtime via secrets mounts, ensuring zero credentials or certificates reside inside the container image.
+
+---
+
+## 📑 Table of Contents
+
+- [🏛️ Architecture & Runtime Contract](#️-architecture--runtime-contract)
+- [📋 Runtime Contracts & Specifications](#-runtime-contracts--specifications)
+- [⚙️ Baseline Configuration (`CONFIG`)](#️-baseline-configuration-config)
+- [🛠️ Build, Test, & Execution Commands](#️-build-test--execution-commands)
+- [📂 Repository Structure](#-repository-structure)
+- [📄 License, Ownership & Disclaimer](#-license-ownership--disclaimer)
 
 ---
 
@@ -113,6 +125,7 @@ tomcat-jmx-exporter/
 ├── AGENTS.md                  Agent governance principles
 ├── CONFIG                     Metadata & pinned checksum SSOT
 ├── Containerfile              Multi-stage OCI build definition
+├── LICENSE                    Apache License 2.0
 ├── PROJECT                    Script-readable project identifier
 ├── README.md                  Technical architecture documentation
 ├── VERSION                    Release version
@@ -128,8 +141,14 @@ tomcat-jmx-exporter/
 
 ---
 
-## 👤 Author & Maintainer
+## 📄 License, Ownership & Disclaimer
 
-- **Lead Engineer & Architect:** Eddy Wiyatno (<edkas07@gmail.com>)
-- **Role:** Senior DevOps & Reliability Engineer
-- **Project:** Tomcat Monitoring & Diagnostics Platform
+### 👤 Author & Ownership
+This repository, along with its associated architectures, automation components, and codebases, is designed, authored, and maintained by **Eddy Wiyatno** ([@edkas07-oss](https://github.com/edkas07-oss)).
+
+### ⚖️ License
+This project is licensed under the [Apache License 2.0](LICENSE) - see the [LICENSE](LICENSE) file for complete terms and conditions.
+
+### 🛡️ Research & Development Disclaimer
+> [!NOTE]
+> All research, development, architectural design, prototyping, test fixtures, and validation suites in this repository were conducted and verified exclusively within **independent, personal laboratory environments** using personal hardware, network infrastructure, and self-hosted tooling. No confidential corporate assets, proprietary production data, or third-party enterprise infrastructure were utilized in the creation or publication of this project.
