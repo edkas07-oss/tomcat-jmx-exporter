@@ -16,6 +16,7 @@ All exporter configurations, PKCS#12 TLS keystores, and credentials are provided
 - [🏛️ Architecture & Runtime Contract](#️-architecture--runtime-contract)
 - [📋 Runtime Contracts & Specifications](#-runtime-contracts--specifications)
 - [⚙️ Baseline Configuration (`CONFIG`)](#️-baseline-configuration-config)
+- [📦 Installation & Deployment Guide](INSTALL.md)
 - [🛠️ Build, Test, & Execution Commands](#️-build-test--execution-commands)
 - [📂 Repository Structure](#-repository-structure)
 - [📄 License, Ownership & Disclaimer](#-license-ownership--disclaimer)
@@ -93,6 +94,20 @@ LOG_VOLUME=tomcat_logs
 ### Persistent Logging Policy (Zero `/tmp`)
 - **Named Volume Persistence:** Tomcat logs (`catalina.out`, `localhost.*.log`, `access_log`) reside on the Podman Named Volume `tomcat_logs` mounted to `/usr/local/tomcat/logs:z`.
 - **Restart Resilience:** Data remains intact across container lifecycles, enabling the **Tomcat Diagnostic Service** to perform retrospective log evidence analysis upon failure.
+
+---
+
+## 📦 Installation & Deployment
+
+For complete image build instructions, two-tier storage requirements, secrets injection, and standalone/fleet deployment steps, refer to the dedicated [**`INSTALL.md`**](INSTALL.md) guide.
+
+```bash
+# Build OCI image locally
+./scripts/build.sh
+
+# Deploy via tmctl operator CLI
+tmctl stack deploy --target tomcat
+```
 
 ---
 
